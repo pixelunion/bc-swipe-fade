@@ -3,10 +3,10 @@ import SwipeFade from '../../dist/js/swipe-fade';
 
 $(function(){
 
-  let gallery = new SwipeFade(document.getElementById('product-images'), {
-    callback: (index, elem) => {
-      console.log('update');
-      // updatePagination(index);
+  let gallery = new SwipeFade({
+    el: $('#product-images'),
+    callback: (index, $slide) => {
+      updatePagination(index);
     }
   });
 
@@ -20,4 +20,7 @@ $(function(){
     gallery.change(to, 500);
   })
 
-})
+  let updatePagination = function(index) {
+    $('.pagination li').removeClass('active').eq(index).addClass('active');
+  }
+});

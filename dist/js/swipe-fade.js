@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 /*
  *
  * Original swipe logic by Brad Birdsall
@@ -7,22 +9,24 @@
 
 export default class SwipeFade {
 
-  constructor(container, options) {
-    this.options = options || {};
+  constructor(options) {
+    this.options = options;
 
-    // elements
-    this.el = container;
-    this.element = this.el.children[0];
-    this.slides;
+    // cache elements
+    this.el = options.el[0];
+    this.wrapper = this.el.children[0];
+    this.slides = this.wrapper.children;
 
     // measurement & utility
+    this.length = this.slides.length;
     this.start = {};
     this.delta = {};
     this.isScrolling;
-    this.slidePos;
     this.width;
-    this.length;
     this.mode;
+
+    // create an array to store current positions of each slide
+    this.slidePos = new Array(this.slides.length);
 
     this.index = 0;
     this.speed = this.options.speed || 300;
@@ -80,8 +84,8 @@ export default class SwipeFade {
         this.delta = {};
 
         // attach touchmove and touchend listeners
-        this.element.addEventListener('touchmove', this.events._handleEvent, false);
-        this.element.addEventListener('touchend', this.events._handleEvent, false);
+        this.wrapper.addEventListener('touchmove', this.events._handleEvent, false);
+        this.wrapper.addEventListener('touchend', this.events._handleEvent, false);
       },
 
       _move: (event) => {
@@ -172,8 +176,8 @@ export default class SwipeFade {
         }
 
         // kill touchmove and touchend event listeners until touchstart called again
-        this.element.removeEventListener('touchmove', this.events._handleEvent, false)
-        this.element.removeEventListener('touchend', this.events._handleEvent, false)
+        this.wrapper.removeEventListener('touchmove', this.events._handleEvent, false)
+        this.wrapper.removeEventListener('touchend', this.events._handleEvent, false)
       },
 
       _transitionEnd: (event) => {
@@ -190,6 +194,8 @@ export default class SwipeFade {
     } else {
       this.mode = "fade";
     }
+
+    $(this.slides[this.index]).addClass('current').siblings().removeClass('current');
 
     // trigger setup for first time
     this._setupAll();
@@ -217,6 +223,11 @@ export default class SwipeFade {
     return afterContent.indexOf('swipe') != -1;
   }
 
+  _setWrapperHeight() {
+    let imgHeight = $(this.slides[this.index]).find('img').height();
+    this.wrapper.style.height = imgHeight + 'px';
+  }
+
 
 
   /*
@@ -227,6 +238,7 @@ export default class SwipeFade {
     if (this._shouldSwipe()) {
       // run these only on initial switch
       if (this.mode == "fade") {
+        this._killFade();
         this._bindListeners();
         this.mode = "swipe";
       }
@@ -243,19 +255,12 @@ export default class SwipeFade {
   }
 
   _setupSwipe() {
-    // cache slides
-    this.slides = this.element.children;
-    this.length = this.slides.length;
-
-    // create an array to store current positions of each slide
-    this.slidePos = new Array(this.slides.length);
-
     // determine this.width of each slide
     this.width = this.el.getBoundingClientRect().width || this.el.offsetWidth;
 
-    this.element.style.width = (this.slides.length * this.width) + 'px';
+    this.wrapper.style.width = (this.slides.length * this.width) + 'px';
 
-    // stack this.elements
+    // stack this.wrappers
     let pos = this.slides.length;
 
     while (pos--) {
@@ -270,16 +275,12 @@ export default class SwipeFade {
       }
     }
 
-    if (!this.browser.transitions) this.element.style.left = (this.index * -width) + 'px';
-  }
-
-  _setupFade() {
-    // things
+    if (!this.browser.transitions) this.wrapper.style.left = (this.index * -width) + 'px';
   }
 
   _killSwipe() {
     // reset element
-    this.element.removeAttribute("style");
+    this.wrapper.removeAttribute("style");
 
     // reset slides
     let pos = this.slides.length;
@@ -287,6 +288,14 @@ export default class SwipeFade {
     while (pos--) {
       let slide = this.slides[pos].removeAttribute("style");
     }
+  }
+
+  _setupFade() {
+    this._setWrapperHeight();
+  }
+
+  _killFade() {
+    this.wrapper.style.height = '';
   }
 
 
@@ -298,15 +307,15 @@ export default class SwipeFade {
   _bindListeners() {
     // add event listeners
     if (this.browser.addEventListener) {
-      // set touchstart event on this.element
-      if (this.browser.touch) this.element.addEventListener('touchstart', this.events._handleEvent, false);
+      // set touchstart event on this.wrapper
+      if (this.browser.touch) this.wrapper.addEventListener('touchstart', this.events._handleEvent, false);
 
       if (this.browser.transitions) {
-        this.element.addEventListener('webkitTransitionEnd', this.events._handleEvent, false);
-        this.element.addEventListener('msTransitionEnd', this.events._handleEvent, false);
-        this.element.addEventListener('oTransitionEnd', this.events._handleEvent, false);
-        this.element.addEventListener('otransitionend', this.events._handleEvent, false);
-        this.element.addEventListener('transitionend', this.events._handleEvent, false);
+        this.wrapper.addEventListener('webkitTransitionEnd', this.events._handleEvent, false);
+        this.wrapper.addEventListener('msTransitionEnd', this.events._handleEvent, false);
+        this.wrapper.addEventListener('oTransitionEnd', this.events._handleEvent, false);
+        this.wrapper.addEventListener('otransitionend', this.events._handleEvent, false);
+        this.wrapper.addEventListener('transitionend', this.events._handleEvent, false);
       }
     }
   }
@@ -315,12 +324,12 @@ export default class SwipeFade {
     // remove event listeners
     if (this.browser.addEventListener) {
       // remove current event listeners
-      this.element.removeEventListener('touchstart', this.events._handleEvent, false);
-      this.element.removeEventListener('webkitTransitionEnd', this.events._handleEvent, false);
-      this.element.removeEventListener('msTransitionEnd', this.events._handleEvent, false);
-      this.element.removeEventListener('oTransitionEnd', this.events._handleEvent, false);
-      this.element.removeEventListener('otransitionend', this.events._handleEvent, false);
-      this.element.removeEventListener('transitionend', this.events._handleEvent, false);
+      this.wrapper.removeEventListener('touchstart', this.events._handleEvent, false);
+      this.wrapper.removeEventListener('webkitTransitionEnd', this.events._handleEvent, false);
+      this.wrapper.removeEventListener('msTransitionEnd', this.events._handleEvent, false);
+      this.wrapper.removeEventListener('oTransitionEnd', this.events._handleEvent, false);
+      this.wrapper.removeEventListener('otransitionend', this.events._handleEvent, false);
+      this.wrapper.removeEventListener('transitionend', this.events._handleEvent, false);
     }
   }
 
@@ -348,11 +357,8 @@ export default class SwipeFade {
   }
 
   _change(to) {
-    if (this.mode === "swipe") {
-      this._swipe(to);
-    } else {
-      this._fade(to);
-    }
+    (this.mode === "swipe") ? this._swipe(to) : this._fade(to);
+    $(this.slides[this.index]).addClass('current').siblings().removeClass('current');
   }
 
   // Swipe methods
@@ -392,17 +398,10 @@ export default class SwipeFade {
   }
 
   _translate(index, dist, speed) {
-
     let slide = this.slides[index];
     let style = slide && slide.style;
 
     if (!style) return;
-
-    style.webkitTransitionDuration =
-    style.MozTransitionDuration =
-    style.msTransitionDuration =
-    style.OTransitionDuration =
-    style.transitionDuration = this.speed + 'ms';
 
     style.webkitTransform = 'translate(' + dist + 'px,0)' + 'translateZ(0)';
     style.msTransform =
@@ -440,9 +439,11 @@ export default class SwipeFade {
   // Fade methods
 
   _fade(to) {
+    this.index = to;
 
+    this._setWrapperHeight();
+    this._offloadFn(this.options.callback && this.options.callback(this.index, this.slides[this.index]));
   }
-
 
 
   /*
