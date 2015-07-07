@@ -1,0 +1,31 @@
+{
+  "name": "bc-swipe-fade",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Bigcommerce Fadey Swipey",
+  "devDependencies": {
+    "finalhandler": "^0.3.3",
+    "serve-static": "^1.8.1",
+    "nodemon": "^1.3.7",
+    "node-sass": "^3.1.2"
+  },
+  "license": "MIT",
+  "scripts": {
+    "serve": "nodemon server.js",
+    "build": "node ./build.js"
+  },
+  "jspm": {
+    "main": "js/swipe-fade",
+    "directories": {
+      "lib": "dist"
+    },
+    "dependencies": {
+      "jquery": "github:components/jquery@^2.1.4"
+    },
+    "devDependencies": {
+      "babel": "npm:babel-core@4.7.16",
+      "babel-runtime": "npm:babel-runtime@4.7.16",
+      "core-js": "npm:core-js@^0.8.4"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+    <link rel="stylesheet" type="text/css" href="demo/style.css">
+  </head>
+  <body>
+    <div id="main">
+
+      <div class="product-slides-container" id="product-images">
+        <div class="product-slides-wrap">
+          <div class="product-slide">
+            <img src="demo/images/photo-1.jpg">
+          </div>
+          <div class="product-slide">
+            <img src="demo/images/photo-2.jpg">
+          </div>
+          <div class="product-slide">
+            <img src="demo/images/photo-3.jpg">
+          </div>
+          <div class="product-slide">
+            <img src="demo/images/photo-4.jpg">
+          </div>
+        </div>
+      </div>
+
+      <ul class="pagination">
+        <li>
+          <a href="#" data-index="0">First</a>
+        </li>
+        <li>
+          <a href="#" data-index="1">Second</a>
+        </li>
+        <li>
+          <a href="#" data-index="2">third</a>
+        </li>
+        <li>
+          <a href="#" data-index="3">fourth</a>
+        </li>
+      </ul>
+
+    </div>
+    <script type="text/javascript" src="jspm_packages/system.js"></script>
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript">
+      System.import('demo/js/app')
+    </script>
+  </body>
+</html>
