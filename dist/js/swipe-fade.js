@@ -461,9 +461,4 @@ export default class SwipeFade {
   next() {
     this._next();
   }
-
-  kill() {
-    this._kill();
-  }
-
 }
