@@ -17,7 +17,7 @@ import SwipeFade from 'bc-swipe-fade';
 let gallery = new SwipeFade({
   el: $('.product-slides-container');
   callback: (index, el) {
-  	console.log(`welcome to slide number ${index}`);
+    console.log(`welcome to slide number ${index}`);
   }
 });
 ```
@@ -25,8 +25,8 @@ let gallery = new SwipeFade({
 
 ### Options
 
-`el`: A jQuery object of our gallery container.  
-`callback`: a function to run after each slide change. 
+`el`: A jQuery object of our gallery container.
+`callback`: a function to run after each slide change.
 
 ### Some sample markup
 
@@ -55,7 +55,7 @@ The module is classname agnositc but remember to wrap your slides in TWO element
 
 `.change(index)`: Switch to a slide
 
-`.next()` and `prev()` are available as wel
+`.next()` and `prev()` are available as well.
 
 ### Responsiveness
 
@@ -81,7 +81,7 @@ The module will watch for an `:after` pseudoelement on the same element with whi
       display: none;
     }
   }
-  
+
   .slide-element {
     position: relative;
     float: left;
@@ -108,7 +108,7 @@ The module will watch for an `:after` pseudoelement on the same element with whi
 ```
 
 
-###Navigation
+### Navigation
 
 The module currently does not include any navigation by default. Make use of the callback and public methods to bake your own. Have a look at the demo.
 

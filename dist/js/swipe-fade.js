@@ -1,10 +1,9 @@
 import $ from 'jquery';
 
 /*
- *
  * Original swipe logic by Brad Birdsall
+ * https://github.com/thebird/swipe
  * Copyright 2013, MIT License
- *
 */
 
 export default class SwipeFade {
@@ -12,7 +11,7 @@ export default class SwipeFade {
   constructor(options) {
     this.options = options;
 
-    // cache elements
+    // cache some elements
     this.el = options.el[0];
     this.wrapper = this.el.children[0];
     this.slides = this.wrapper.children;
@@ -21,14 +20,17 @@ export default class SwipeFade {
     this.length = this.slides.length;
     this.start = {};
     this.delta = {};
-    this.isScrolling;
     this.width;
+    this.isScrolling;
+    this.index = 0;
+
+    // swipe or fade?
     this.mode;
 
     // create an array to store current positions of each slide
     this.slidePos = new Array(this.slides.length);
 
-    this.index = 0;
+    // Deprecating this in lieu of transition css properties, I think
     this.speed = this.options.speed || 300;
 
     // check browser capabilities
@@ -46,7 +48,8 @@ export default class SwipeFade {
       })(document.createElement('swipe'))
     };
 
-    // object for capturing all the events and dispatching appropriately
+    // -------------------------- Event Handling -------------------------- //
+
     this.events = {
       _handleEvent: (event) => {
         switch (event.type) {
@@ -92,6 +95,7 @@ export default class SwipeFade {
         // ensure swiping with one touch and not pinching
         if ( event.touches.length > 1 || event.scale && event.scale !== 1) return
 
+        // Again, this option is not documented. Keep?..
         if (this.options.disableScroll) event.preventDefault();
 
         let touches = event.touches[0];
@@ -187,17 +191,20 @@ export default class SwipeFade {
       }
     }
 
+    // -------------------------- Initial Setup on page load -------------------------- //
+
     // determine initial state, bind touch events if we're looking swipey
     if (this._shouldSwipe()) {
-      this.mode = "swipe";
+      this.mode = 'swipe';
       this._bindListeners();
     } else {
-      this.mode = "fade";
+      this.mode = 'fade';
     }
 
+    // set the first class
     $(this.slides[this.index]).addClass('current').siblings().removeClass('current');
 
-    // trigger setup for first time
+    // trigger layout for first time
     this._setupAll();
 
     // bind resize event
@@ -208,11 +215,7 @@ export default class SwipeFade {
     }
   }
 
-
-
-  /*
-   * Utility
-   */
+  // -------------------------- Utility -------------------------- //
 
   // offload a function's execution
   _offloadFn(fn) { setTimeout(fn || function() {}, 0) };
@@ -228,28 +231,28 @@ export default class SwipeFade {
     this.wrapper.style.height = imgHeight + 'px';
   }
 
-
-
-  /*
-   * Set up and destroy
-   */
+  // -------------------------- Setup & Destroy -------------------------- //
 
   _setupAll() {
     if (this._shouldSwipe()) {
+
       // run these only on initial switch
-      if (this.mode == "fade") {
+      if (this.mode == 'fade') {
         this._killFade();
         this._bindListeners();
-        this.mode = "swipe";
+        this.mode = 'swipe';
       }
+
       this._setupSwipe();
     } else {
+
       // run these only on initial switch
-      if (this.mode == "swipe") {
+      if (this.mode == 'swipe') {
         this._killSwipe();
         this._unBindListeners();
-        this.mode = "fade";
+        this.mode = 'fade';
       }
+
       this._setupFade();
     }
   }
@@ -280,13 +283,12 @@ export default class SwipeFade {
 
   _killSwipe() {
     // reset element
-    this.wrapper.removeAttribute("style");
+    this.wrapper.removeAttribute('style');
 
     // reset slides
     let pos = this.slides.length;
-
     while (pos--) {
-      let slide = this.slides[pos].removeAttribute("style");
+      let slide = this.slides[pos].removeAttribute('style');
     }
   }
 
@@ -298,11 +300,7 @@ export default class SwipeFade {
     this.wrapper.style.height = '';
   }
 
-
-
-  /*
-   * Toggle Event Binding
-   */
+  // -------------------------- Event Binding -------------------------- //
 
   _bindListeners() {
     // add event listeners
@@ -333,11 +331,7 @@ export default class SwipeFade {
     }
   }
 
-
-
-  /*
-   * Interaction methods
-   */
+  // -------------------------- Interaction -------------------------- //
 
   _prev() {
     if (this.index) {
@@ -357,11 +351,9 @@ export default class SwipeFade {
   }
 
   _change(to) {
-    (this.mode === "swipe") ? this._swipe(to) : this._fade(to);
+    (this.mode === 'swipe') ? this._swipe(to) : this._fade(to);
     $(this.slides[this.index]).addClass('current').siblings().removeClass('current');
   }
-
-  // Swipe methods
 
   _swipe(to) {
     // do nothing if already on requested slide
@@ -383,8 +375,7 @@ export default class SwipeFade {
 
     } else {
       to = this._circle(to);
-      // TODO: this needs to be ported from swipe.js from non-transition browsers
-      // animate(this.index * -this.width, to * -this.width, this.speed);
+      this._animate(this.index * -this.width, to * -this.width, this.speed);
     }
 
     this.index = to;
@@ -436,19 +427,13 @@ export default class SwipeFade {
     }, 4);
   }
 
-  // Fade methods
-
   _fade(to) {
     this.index = to;
-
     this._setWrapperHeight();
     this._offloadFn(this.options.callback && this.options.callback(this.index, this.slides[this.index]));
   }
 
-
-  /*
-   * Public Methods
-   */
+  // -------------------------- Event Binding -------------------------- //
 
   change(to) {
     this._change(to);
