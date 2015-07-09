@@ -12,12 +12,12 @@ export default class SwipeFade {
     this.options = options;
 
     // cache some elements
-    this.el = options.el[0];
-    this.wrapper = this.el.children[0];
-    this.slides = this.wrapper.children;
+    this.$el = options.el;
+    this.$wrapper = this.$el.children();
+    this.$slides = this.$wrapper.children();
 
     // measurement & utility
-    this.length = this.slides.length;
+    this.length = this.$slides.length;
     this.start = {};
     this.delta = {};
     this.width;
@@ -28,7 +28,7 @@ export default class SwipeFade {
     this.mode;
 
     // create an array to store current positions of each slide
-    this.slidePos = new Array(this.slides.length);
+    this.slidePos = new Array(this.length);
 
     // Deprecating this in lieu of transition css properties, I think
     this.speed = this.options.speed || 300;
@@ -38,7 +38,7 @@ export default class SwipeFade {
       addEventListener: !!window.addEventListener,
       touch: ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch,
       transitions: (function(temp) {
-        let props = ['transitionProperty', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
+        const props = ['transitionProperty', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
         for ( let i in props ) {
           if (temp.style[ props[i] ] !== undefined) {
             return true;
@@ -69,7 +69,7 @@ export default class SwipeFade {
       },
 
       _start: (event) => {
-        let touches = event.touches[0];
+        const touches = event.originalEvent.touches[0];
 
         // measure start values
         this.start = {
@@ -87,18 +87,18 @@ export default class SwipeFade {
         this.delta = {};
 
         // attach touchmove and touchend listeners
-        this.wrapper.addEventListener('touchmove', this.events._handleEvent, false);
-        this.wrapper.addEventListener('touchend', this.events._handleEvent, false);
+        this.$wrapper.on('touchmove touchend',  this.events._handleEvent );
       },
 
       _move: (event) => {
+        let event = event.originalEvent;
         // ensure swiping with one touch and not pinching
         if ( event.touches.length > 1 || event.scale && event.scale !== 1) return
 
         // Again, this option is not documented. Keep?..
         if (this.options.disableScroll) event.preventDefault();
 
-        let touches = event.touches[0];
+        const touches = event.touches[0];
 
         // measure change in x and y
         this.delta = {
@@ -121,7 +121,7 @@ export default class SwipeFade {
           this.delta.x =
             this.delta.x /
               ( (!this.index && this.delta.x > 0             // if first slide and sliding left
-                || this.index == this.slides.length - 1      // or if last slide and sliding right
+                || this.index == this.length - 1      // or if last slide and sliding right
                 && this.delta.x < 0                          // and if sliding at all
               ) ?
               ( Math.abs(this.delta.x) / this.width + 1 )    // determine resistance level
@@ -136,21 +136,21 @@ export default class SwipeFade {
 
       _end: (event) => {
         // measure duration
-        let duration = +new Date - this.start.time;
+        const duration = +new Date - this.start.time;
 
         // determine if slide attempt triggers next/prev slide
-        let isValidSlide =
+        const isValidSlide =
               Number(duration) < 250               // if slide duration is less than 250ms
               && Math.abs(this.delta.x) > 20            // and if slide amt is greater than 20px
               || Math.abs(this.delta.x) > this.width / 2;      // or if slide amt is greater than half the width
 
         // determine if slide attempt is past start and end
-        let isPastBounds =
+        const isPastBounds =
               !this.index && this.delta.x > 0                            // if first slide and slide amt is greater than 0
-              || this.index == this.slides.length - 1 && this.delta.x < 0;    // or if last slide and slide amt is less than 0
+              || this.index == this.length - 1 && this.delta.x < 0;    // or if last slide and slide amt is less than 0
 
         // determine direction of swipe (true:right, false:left)
-        let direction = this.delta.x < 0;
+        const direction = this.delta.x < 0;
 
         // if not scrolling vertically
         if (!this.isScrolling) {
@@ -170,7 +170,7 @@ export default class SwipeFade {
               this.index = this._circle(this.index - 1);
             }
 
-            this.options.callback && this.options.callback(this.index, this.slides[this.index]);
+            this.options.callback && this.options.callback(this.index, this._$currentSlide());
 
           } else {
             this._move(this.index - 1, -this.width, this.speed);
@@ -180,13 +180,12 @@ export default class SwipeFade {
         }
 
         // kill touchmove and touchend event listeners until touchstart called again
-        this.wrapper.removeEventListener('touchmove', this.events._handleEvent, false)
-        this.wrapper.removeEventListener('touchend', this.events._handleEvent, false)
+        this.$wrapper.off('touchmove touchend', this.events._handleEvent);
       },
 
       _transitionEnd: (event) => {
         if (parseInt(event.target.getAttribute('data-index'), 10) == this.index) {
-          this.options.transitionEnd && this.options.transitionEnd.call(event, this.index, this.slides[this.index]);
+          this.options.transitionEnd && this.options.transitionEnd.call(event, this.index, this._$currentSlide());
         }
       }
     }
@@ -202,7 +201,7 @@ export default class SwipeFade {
     }
 
     // set the first class
-    $(this.slides[this.index]).addClass('current').siblings().removeClass('current');
+    this._$currentSlide().addClass('current').siblings().removeClass('current');
 
     // trigger layout for first time
     this._setupAll();
@@ -220,15 +219,20 @@ export default class SwipeFade {
   // offload a function's execution
   _offloadFn(fn) { setTimeout(fn || function() {}, 0) };
 
+  // this.$slides.eq(this.index) doesn't work for some reason
+  _$currentSlide() {
+    return $(this.$slides[this.index]);
+  }
+
   // activate if :after { content: 'swipe' }. Thanks Flickity!
   _shouldSwipe() {
-    let afterContent = getComputedStyle( this.el, ':after' ).content;
+    const afterContent = getComputedStyle( this.$el[0], ':after' ).content;
     return afterContent.indexOf('swipe') != -1;
   }
 
   _setWrapperHeight() {
-    let imgHeight = $(this.slides[this.index]).find('img').height();
-    this.wrapper.style.height = imgHeight + 'px';
+    const imgHeight = this._$currentSlide().find('img').height();
+    this.$wrapper.height(imgHeight);
   }
 
   // -------------------------- Setup & Destroy -------------------------- //
@@ -259,37 +263,33 @@ export default class SwipeFade {
 
   _setupSwipe() {
     // determine this.width of each slide
-    this.width = this.el.getBoundingClientRect().width || this.el.offsetWidth;
+    this.width = this.$el.outerWidth();
 
-    this.wrapper.style.width = (this.slides.length * this.width) + 'px';
+    this.$wrapper.width(this.length * this.width);
 
-    // stack this.wrappers
-    let pos = this.slides.length;
+    // stack this.$wrappers
+    let pos = this.length;
 
-    while (pos--) {
-      let slide = this.slides[pos];
-
-      slide.style.width = this.width + 'px';
-      slide.setAttribute('data-index', pos);
+    this.$slides.each((i, slide) => {
+      $(slide).width(this.width);
+      $(slide).attr('data-index', pos);
 
       if (this.browser.transitions) {
-        slide.style.left = (pos * -this.width) + 'px';
-        this._move(pos, this.index > pos ? -this.width : (this.index < pos ? this.width : 0), 0);
+        $(slide).css('left', (i * -this.width));
+        this._move(i, this.index > i ? -this.width : (this.index < i ? this.width : 0), 0);
       }
-    }
+    });
 
-    if (!this.browser.transitions) this.wrapper.style.left = (this.index * -width) + 'px';
+    if (!this.browser.transitions) this.$wrapper.css('left', (this.index * -width));
   }
 
   _killSwipe() {
     // reset element
-    this.wrapper.removeAttribute('style');
+    this.$wrapper.removeAttr('style');
 
-    // reset slides
-    let pos = this.slides.length;
-    while (pos--) {
-      let slide = this.slides[pos].removeAttribute('style');
-    }
+    this.$slides.each(function() {
+      $(this).removeAttr('style');
+    })
   }
 
   _setupFade() {
@@ -297,7 +297,7 @@ export default class SwipeFade {
   }
 
   _killFade() {
-    this.wrapper.style.height = '';
+    this.$wrapper.css('height', '');
   }
 
   // -------------------------- Event Binding -------------------------- //
@@ -305,29 +305,25 @@ export default class SwipeFade {
   _bindListeners() {
     // add event listeners
     if (this.browser.addEventListener) {
-      // set touchstart event on this.wrapper
-      if (this.browser.touch) this.wrapper.addEventListener('touchstart', this.events._handleEvent, false);
+      // set touchstart event on this.$wrapper
+      if (this.browser.touch) {
+        this.$wrapper.on('touchstart', (evt) => {
+          this.events._handleEvent(evt);
+        });
+      }
 
       if (this.browser.transitions) {
-        this.wrapper.addEventListener('webkitTransitionEnd', this.events._handleEvent, false);
-        this.wrapper.addEventListener('msTransitionEnd', this.events._handleEvent, false);
-        this.wrapper.addEventListener('oTransitionEnd', this.events._handleEvent, false);
-        this.wrapper.addEventListener('otransitionend', this.events._handleEvent, false);
-        this.wrapper.addEventListener('transitionend', this.events._handleEvent, false);
+        this.$wrapper.on('webkitTransitionEnd msTransitionEnd oTransitionEnd otransitionend transitionend', (evt) => {
+          this.events._handleEvent(evt);
+        });
       }
     }
   }
 
   _unBindListeners() {
     // remove event listeners
-    if (this.browser.addEventListener) {
-      // remove current event listeners
-      this.wrapper.removeEventListener('touchstart', this.events._handleEvent, false);
-      this.wrapper.removeEventListener('webkitTransitionEnd', this.events._handleEvent, false);
-      this.wrapper.removeEventListener('msTransitionEnd', this.events._handleEvent, false);
-      this.wrapper.removeEventListener('oTransitionEnd', this.events._handleEvent, false);
-      this.wrapper.removeEventListener('otransitionend', this.events._handleEvent, false);
-      this.wrapper.removeEventListener('transitionend', this.events._handleEvent, false);
+    if (this.browser.transitions) {
+      this.$wrapper.off('webkitTransitionEnd msTransitionEnd oTransitionEnd otransitionend transitionend touchstart', this.events._handleEvent);
     }
   }
 
@@ -340,19 +336,19 @@ export default class SwipeFade {
   }
 
   _next() {
-    if (this.index < this.slides.length - 1) {
+    if (this.index < this.length - 1) {
       change(this.index + 1);
     }
   }
 
   _circle(index) {
-    // a simple positive modulo using this.slides.length
-    return (this.slides.length + (index % this.slides.length)) % this.slides.length;
+    // a simple positive modulo using this.length
+    return (this.length + (index % this.length)) % this.length;
   }
 
   _change(to) {
     (this.mode === 'swipe') ? this._swipe(to) : this._fade(to);
-    $(this.slides[this.index]).addClass('current').siblings().removeClass('current');
+    this._$currentSlide().addClass('current').siblings().removeClass('current');
   }
 
   _swipe(to) {
@@ -360,10 +356,10 @@ export default class SwipeFade {
     if (this.index == to) return;
 
     if (this.browser.transitions) {
-      let direction = Math.abs(this.index - to) / (this.index - to); // 1: backward, -1: forward
+      const direction = Math.abs(this.index - to) / (this.index - to); // 1: backward, -1: forward
       let diff = Math.abs(this.index - to) - 1;
 
-      // move all the this.slides between index and to in the right direction
+      // move all the this.$slides between index and to in the right direction
       while (diff--) {
         this._move( this._circle((to > this.index ? to : this.index) - diff - 1), this.width * direction, 0);
       }
@@ -380,7 +376,7 @@ export default class SwipeFade {
 
     this.index = to;
 
-    this._offloadFn(this.options.callback && this.options.callback(this.index, this.slides[this.index]));
+    this._offloadFn(this.options.callback && this.options.callback(this.index, this._$currentSlide()));
   }
 
   _move(index, dist, speed) {
@@ -389,18 +385,20 @@ export default class SwipeFade {
   }
 
   _translate(index, dist, speed) {
-    let slide = this.slides[index];
-    let style = slide && slide.style;
+    const $slide = $(this.$slides[index]);
 
-    if (!style) return;
+    if ($slide) {
+      $slide.css({
+        webkitTransform: `translate(${ dist }px,0) translateZ(0)`,
+        msTransform: `translateX(${ dist }px)`,
+        MozTransform: `translateX(${ dist }px)`,
+        OTransform: `translateX(${ dist }px`
+      });
+    };
 
-    style.webkitTransform = 'translate(' + dist + 'px,0)' + 'translateZ(0)';
-    style.msTransform =
-    style.MozTransform =
-    style.OTransform = 'translateX(' + dist + 'px)';
   }
 
-  // TODO: untested
+  // TODO: untested & out of date
   _animate(from, to, speed) {
     // if not an animation, just reposition
     if (!speed) {
@@ -408,9 +406,9 @@ export default class SwipeFade {
       return;
     }
 
-    let start = +new Date;
+    const start = +new Date;
 
-    let timer = setInterval(function() {
+    const timer = setInterval(function() {
 
       let timeElap = +new Date - start;
 
@@ -430,10 +428,10 @@ export default class SwipeFade {
   _fade(to) {
     this.index = to;
     this._setWrapperHeight();
-    this._offloadFn(this.options.callback && this.options.callback(this.index, this.slides[this.index]));
+    this._offloadFn(this.options.callback && this.options.callback(this.index, this._$currentSlide()));
   }
 
-  // -------------------------- Event Binding -------------------------- //
+  // -------------------------- Expose public methods -------------------------- //
 
   change(to) {
     this._change(to);
