@@ -3,8 +3,8 @@ import SwipeFade from '../../dist/js/swipe-fade';
 
 $(function(){
 
-  let gallery = new SwipeFade({
-    el: $('#product-images'),
+  const gallery = new SwipeFade({
+    el: '#product-images',
     callback: (index, $slide) => {
       updatePagination(index);
     }
@@ -12,8 +12,8 @@ $(function(){
 
   $('.pagination a').bind('click', (evt) => {
     evt.preventDefault();
-    let $target = $(evt.currentTarget);
-    let to = $target.data('index');
+    const $target = $(evt.currentTarget);
+    const to = $target.data('index');
 
     $target.parent('li').addClass('active').siblings().removeClass('active');
     console.log(`slide changed to number ${to}`);

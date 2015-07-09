@@ -8,7 +8,8 @@ img {
 
 .product-slides-container {
   position: relative;
-  overflow: hidden; }
+  overflow: hidden;
+  border: 1px solid red; }
   @media screen and (max-width: 600px) {
     .product-slides-container:after {
       content: 'swipe';
@@ -16,7 +17,8 @@ img {
 
 .product-slides-wrap {
   position: relative;
-  overflow: hidden; }
+  overflow: hidden;
+  transition: height 0.2s ease; }
 
 .product-slide {
   position: relative;

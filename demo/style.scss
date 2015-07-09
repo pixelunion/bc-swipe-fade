@@ -11,6 +11,7 @@ img {
 .product-slides-container {
   position: relative;
   overflow: hidden;
+  border: 1px solid red;
 
   @media screen and (max-width: 600px) {
 
@@ -24,6 +25,7 @@ img {
 .product-slides-wrap {
   position: relative;
   overflow: hidden;
+  transition: height 0.2s ease;
 }
 
 .product-slide {
