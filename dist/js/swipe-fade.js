@@ -119,7 +119,7 @@ export default class SwipeFade {
   }
 
   _onMove(event) {
-    let event = event.originalEvent;
+    event = event.originalEvent;
     // ensure swiping with one touch and not pinching
     if ( event.touches.length > 1 || event.scale && event.scale !== 1) return
 
