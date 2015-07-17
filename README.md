@@ -15,7 +15,7 @@ import $ from 'jquery';
 import SwipeFade from 'bc-swipe-fade';
 
 let gallery = new SwipeFade({
-  el: $('.product-slides-container');
+  el: $('.product-slides-container'),
   callback: (index, el) {
     console.log(`welcome to slide number ${index}`);
   }
@@ -64,25 +64,25 @@ The module will watch for an `:after` pseudoelement on the same element with whi
 ### Important CSS
 
 ```
-.main-element {
+.product-slides-container {
   position: relative;
   overflow: hidden;
 }
 
-.wrapper-element {
+.product-slides-wrap {
   position: relative;
   overflow: hidden;
 }
 
 @media(swiping-breakpoint) {
-  .main-element {
+  .product-slides-container {
     &:after {
-      content: 'swipe'; <-- that!
       display: none;
+      content: "swipe";
     }
   }
 
-  .slide-element {
+  .product-slide {
     position: relative;
     float: left;
     width: 100%;
@@ -91,16 +91,16 @@ The module will watch for an `:after` pseudoelement on the same element with whi
 }
 
 @media(fading-breakpoint) {
-  .slide-element {
+  .product-slide {
     position: absolute;
     top: 0;
     left: 0;
-    opacity: 0;
     z-index: -1;
+    opacity: 0;
 
     &.current {
-      opacity: 1;
       z-index: auto;
+      opacity: 1;
     }
   }
 }
