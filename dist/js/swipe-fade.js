@@ -64,9 +64,6 @@ export default class SwipeFade {
     // trigger layout for first time
     this._setupAll();
 
-    // set height
-    this._setWrapperHeight();
-
     // bind resize event
     $(window).on('resize', () => {
       this._offloadFn(this._setupAll());
@@ -237,6 +234,8 @@ export default class SwipeFade {
   // -------------------------- Setup & Destroy -------------------------- //
 
   _setupAll() {
+    this.$wrapper.removeClass('swipe-fade-active'); // temporarily disable any transition effects
+
     if (this._shouldSwipe()) {
 
       // run these only on initial switch
@@ -258,6 +257,8 @@ export default class SwipeFade {
 
       this._setupFade();
     }
+
+    this.$wrapper.addClass('swipe-fade-active'); // enable transition effects
   }
 
   _setupSwipe() {
@@ -273,6 +274,9 @@ export default class SwipeFade {
       $(slide).css('left', (i * -this.width));
       this._move(i, this.index > i ? -this.width : (this.index < i ? this.width : 0), 0);
     });
+
+    // set height
+    this._setWrapperHeight();
   }
 
   _killSwipe() {

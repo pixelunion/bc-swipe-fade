@@ -32,7 +32,10 @@ img {
   position: relative;
   float: left;
   width: 100%;
-  transition: all 0.2s ease;
+
+  .swipe-fade-active & {
+    transition: all 0.2s ease;
+  }
 
   @media screen and (min-width: 601px) {
     position: absolute;
