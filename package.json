@@ -27,7 +27,7 @@
       "lib": "src"
     },
     "dependencies": {
-      "jquery": "github:components/jquery@^2.1.4"
+      "jquery": "github:components/jquery@^3.4.1"
     },
     "devDependencies": {
       "babel": "npm:babel-core@4.7.16",
@@ -35,5 +35,8 @@
       "core-js": "npm:core-js@^0.8.4"
     }
   },
-  "pre-commit": ["build", "git-add"]
+  "pre-commit": [
+    "build",
+    "git-add"
+  ]
 }
