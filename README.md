@@ -5,7 +5,7 @@ Make the product images change. Make them change differently based on screen siz
 ### Installation
 
 ```
-jspm install --save bc-swipe-fade=bitbucket:pixelunion/bc-swipe-fade
+npm i --save github:pixelunion/bc-swipe-fade
 ```
 
 ### Usage
@@ -123,7 +123,6 @@ For debugging or improvements you can run a standalone test version of the modul
 
 ```
 $ npm install
-$ jspm install
 $ npm run serve
 ```
 This will allow you to make changes to the JS and HTML. To re-compile the scss you'll need to run `npm run build` from a separate terminal window after each change.
